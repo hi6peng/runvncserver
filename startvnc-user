@@ -1,0 +1,53 @@
+#!/bin/sh -e
+PATH="/usr/bin:/usr/local/sbin:/usr/sbin"
+
+# The Username:Group that will run VNC
+XUSER="liupeng"
+VNCSERVER=/usr/bin/vncserver
+
+# The display that VNC will use
+DISPLAY=":1"
+
+# Color depth (between 8 and 32)
+DEPTH="16"
+
+# The Desktop geometry to use.
+#GEOMETRY="<WIDTH>x<HEIGHT>"
+#GEOMETRY="800x600"
+GEOMETRY="1024x768"
+#GEOMETRY="1280x1024"
+
+# The name that the VNC Desktop will have.
+NAME="$XUSER-vnc-server"
+OPTIONS="-name ${NAME} -depth ${DEPTH} -geometry ${GEOMETRY} ${DISPLAY}"
+
+case "$1" in
+start)
+if sudo -Hu "$XUSER" xdpyinfo -display "$DISPLAY" > /dev/null 2>&1; then
+    echo "user $XUSER can connect to display $DISPLAY"
+    exit 1
+else
+    echo "user $XUSER cannot connect to display $DISPLAY"
+fi
+#su - ${XUSER} -c "$VNCSERVER ${OPTIONS}"
+sudo -Hu ${XUSER} $VNCSERVER ${OPTIONS}
+;;
+
+stop)
+if sudo -Hu "$XUSER" xdpyinfo -display "$DISPLAY" > /dev/null 2>&1; then
+    echo "user $XUSER can connect to display $DISPLAY"
+else
+    echo "user $XUSER cannot connect to display $DISPLAY"
+    exit 1
+fi
+#su - ${XUSER} -c "$VNCSERVER -kill ${DISPLAY}"
+sudo -Hu ${XUSER} $VNCSERVER -kill ${DISPLAY}
+;;
+
+restart)
+$0 stop
+$0 start
+;;
+esac
+
+exit 0
